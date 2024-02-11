@@ -24,7 +24,9 @@ def receive_attachment():
 
     # Obtener el ID del JSON enviado en la solicitud
     request_data = json.loads(request.form.get('json_data'))
-    file_id = request_data.get('id')
+    id_cliente = request_data.get('id_cliente')
+    id_caso = request_data.get('id_caso')
+    id_correo = request_data.get('id_correo')
 
     # Determinar la extensión del archivo
     file_extension = get_file_extension(request.files['archivo'].filename)
@@ -32,8 +34,20 @@ def receive_attachment():
     # Obtener el tipo de contenido basado en la extensión del archivo
     content_type = get_content_type(file_extension)
 
+    # Crear la estructura de carpetas
+    cliente_folder = os.path.join('/home/claudio/tu_proyecto', id_cliente)
+    caso_folder = os.path.join(cliente_folder, id_caso)
+    correo_folder = os.path.join(caso_folder, id_correo)
+
+    # Crear las carpetas si no existen
+    os.makedirs(cliente_folder, exist_ok=True)
+    os.makedirs(caso_folder, exist_ok=True)
+    os.makedirs(correo_folder, exist_ok=True)
+
+    # Construir la ruta del archivo
+    file_path = os.path.join(correo_folder, f'{str(os.urandom(24).hex())}{file_extension}')
+
     # Guardar el archivo en el sistema local
-    file_path = os.path.join('/home/claudio/archivos_adjuntos', f'{file_id}_{str(os.urandom(24).hex())}{file_extension}')
     with open(file_path, 'wb') as file:
         file.write(binary_data)
 
