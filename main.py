@@ -4,10 +4,6 @@ import json
 
 app = Flask(__name__)
 
-def get_file_extension(filename):
-    _, file_extension = os.path.splitext(filename)
-    return file_extension.lower()
-
 def get_content_type(file_extension):
     content_type_mapping = {
         '.pdf': 'application/pdf',
@@ -20,7 +16,8 @@ def get_content_type(file_extension):
 @app.route('/api/test_adjunto', methods=['POST'])
 def receive_attachment():
     # Obtener el contenido del archivo adjunto desde la solicitud
-    binary_data = request.files['archivo'].read()
+    archivo = request.files['archivo']
+    binary_data = archivo.read()
 
     # Obtener el ID del JSON enviado en la solicitud
     request_data = json.loads(request.form.get('json_data'))
@@ -28,14 +25,17 @@ def receive_attachment():
     id_caso = request_data.get('id_caso')
     id_correo = request_data.get('id_correo')
 
-    # Determinar la extensión del archivo
-    file_extension = get_file_extension(request.files['archivo'].filename)
+    # Obtener el nombre original del archivo
+    original_filename = archivo.filename
+
+    # Obtener la extensión del archivo
+    _, file_extension = os.path.splitext(original_filename)
 
     # Obtener el tipo de contenido basado en la extensión del archivo
     content_type = get_content_type(file_extension)
 
     # Crear la estructura de carpetas
-    cliente_folder = os.path.join('/home/claudio/tu_proyecto', id_cliente)
+    cliente_folder = os.path.join('/home/claudio/archivos_adjuntos', id_cliente)
     caso_folder = os.path.join(cliente_folder, id_caso)
     correo_folder = os.path.join(caso_folder, id_correo)
 
@@ -45,7 +45,7 @@ def receive_attachment():
     os.makedirs(correo_folder, exist_ok=True)
 
     # Construir la ruta del archivo
-    file_path = os.path.join(correo_folder, f'{str(os.urandom(24).hex())}{file_extension}')
+    file_path = os.path.join(correo_folder, original_filename)
 
     # Guardar el archivo en el sistema local
     with open(file_path, 'wb') as file:
@@ -68,7 +68,7 @@ def descargar_adjunto():
     file_path = os.path.join('ruta_local', fileId)
 
     if os.path.isfile(file_path):
-        return send_file(file_path, as_attachment=True, mimetype=get_content_type(get_file_extension(file_path)))
+        return send_file(file_path, as_attachment=True, mimetype=get_content_type(os.path.splitext(file_path)[1]))
     else:
         return 'Archivo no encontrado', 404
 
