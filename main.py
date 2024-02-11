@@ -33,7 +33,7 @@ def receive_attachment():
     content_type = get_content_type(file_extension)
 
     # Guardar el archivo en el sistema local
-    file_path = os.path.join('ruta_local', f'{file_id}_{str(os.urandom(24).hex())}{file_extension}')
+    file_path = os.path.join('/home/claudio-ThinkPad-T460/archivos_adjuntos', f'{file_id}_{str(os.urandom(24).hex())}{file_extension}')
     with open(file_path, 'wb') as file:
         file.write(binary_data)
 
